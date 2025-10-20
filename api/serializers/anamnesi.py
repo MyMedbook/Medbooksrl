@@ -59,15 +59,11 @@ class DislipidemiaSer(serializers.Serializer):
 
     def to_internal_value(self, data):
 
-        try:
-            data['anno_insorgenza']
-        except KeyError:
-            pass
-        else:
-            if data['tipo'] == DislipidemiaType.NO and data['anno_insorgenza']:
-                raise serializers.ValidationError(
-                    "Anno Insorgenza non deve essere inserito se Dislipidemia non è presente."
-                )
+
+        if data['tipo'] == DislipidemiaType.NO and data.get('anno_insorgenza'):
+            raise serializers.ValidationError(
+                "Anno Insorgenza non deve essere inserito se Dislipidemia non è presente."
+            )
             
         if not data['tipo'] == DislipidemiaType.NO:
             data = preprocess_insorgenza(data)
@@ -80,16 +76,12 @@ class DiabeteMellitoSer(serializers.Serializer):
     anni = serializers.IntegerField(min_value=0, required=False, allow_null=True)
 
     def to_internal_value(self, data):
-        try:
-            data['anno_insorgenza']
-        except KeyError:
-            pass
-        else:
-            if not data['presente'] and data['anno_insorgenza']:
-                raise serializers.ValidationError(
-                    "Anno Insorgenza non deve essere inserito se Diabete Mellito non è presente."
-                )
-        if data['presente']:
+
+        if not data.get('presente') and data.get('anno_insorgenza'):
+            raise serializers.ValidationError(
+                "Anno Insorgenza non deve essere inserito se Diabete Mellito non è presente."
+            )
+        if data.get('presente'):
             data = preprocess_insorgenza(data)
 
         return super().to_internal_value(data)
@@ -103,25 +95,16 @@ class FumoSer(serializers.Serializer):
 
     def to_internal_value(self, data):
 
-        try:
-            data['anno_inizio']
-        except KeyError:
-            pass
-        else:
-            if data['stato'] == FumoStatus.NO and data['anno_inizio']:
-                raise serializers.ValidationError(
-                    "Anno Inizio non deve essere inserito se il/la paziente non è fumatore."
-                )
 
-        try:
-            data['anno_interruzione']
-        except KeyError:
-            pass
-        else:  
-            if data['stato'] != FumoStatus.PASSATO and data['anno_interruzione']:
-                raise serializers.ValidationError(
-                    "Anno Interruzione non deve essere inserito se il/la paziente è ancora fumatore o non lo è mai stato."
-                )
+        if data['stato'] == FumoStatus.NO and data.get('anno_inizio'):
+            raise serializers.ValidationError(
+                "Anno Inizio non deve essere inserito se il/la paziente non è fumatore."
+            )
+
+        if data['stato'] != FumoStatus.PASSATO and data.get('anno_interruzione'):
+            raise serializers.ValidationError(
+                "Anno Interruzione non deve essere inserito se il/la paziente è ancora fumatore o non lo è mai stato."
+            )
         
         data = preprocess_fumo(data)
         return super().to_internal_value(data)
